@@ -20,8 +20,10 @@ import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.flowable.engine.HistoryService;
+import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
 import org.flowable.engine.history.HistoricProcessInstance;
+import org.flowable.engine.runtime.ActivityInstance;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.TaskQuery;
@@ -67,6 +69,9 @@ public class BpmTaskServiceImpl implements BpmTaskService {
     private BpmTaskExtMapper taskExtMapper;
     @Resource
     private BpmMessageService messageService;
+
+    @Resource
+    private RuntimeService runtimeService;
 
     @Override
     public PageResult<BpmTaskTodoPageItemRespVO> getTodoTaskPage(Long userId, BpmTaskTodoPageReqVO pageVO) {
@@ -222,6 +227,27 @@ public class BpmTaskServiceImpl implements BpmTaskService {
     @Override
     public void updateTaskAssignee(String id, Long userId) {
         taskService.setAssignee(id, String.valueOf(userId));
+    }
+
+    @Override
+    public Map<String,String> rollbackNodes(Long userId, BpmTaskRollbackNodesReqVO reqVO) {
+        // 校验任务存在
+        Task task = checkTask(userId, reqVO.getId());
+        // 获取退回节点列表
+        List<ActivityInstance> list = runtimeService.createActivityInstanceQuery().unfinished().processInstanceId(task.getProcessInstanceId()).list();
+        Map<String,String> nodes=new HashMap<>();
+        for (ActivityInstance activityInstance : list) {
+            nodes.put(activityInstance.getActivityId(),activityInstance.getActivityName());
+        }
+        return nodes;
+    }
+
+    @Override
+    public void rollback(Long userId, BpmTaskRollbackReqVO reqVO) {
+        // 校验任务存在
+        Task task = checkTask(userId, reqVO.getId());
+        // 更新负责人
+        updateTaskAssignee(task.getId(), reqVO.getAssigneeUserId());
     }
 
     /**

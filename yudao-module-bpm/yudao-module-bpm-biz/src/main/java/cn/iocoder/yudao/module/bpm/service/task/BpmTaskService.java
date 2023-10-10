@@ -101,6 +101,22 @@ public interface BpmTaskService {
     void updateTaskAssignee(String id, Long userId);
 
     /**
+     * 查询可退回的节点
+     *
+     * @param userId 用户编号
+     * @param reqVO  分配请求
+     */
+    Map<String,String> rollbackNodes(Long userId, BpmTaskRollbackNodesReqVO reqVO);
+
+    /**
+     * 退回任务
+     *
+     * @param userId 用户编号
+     * @param reqVO  分配请求
+     */
+    void rollback(Long userId, BpmTaskRollbackReqVO reqVO);
+
+    /**
      * 创建 Task 拓展记录
      *
      * @param task 任务实体

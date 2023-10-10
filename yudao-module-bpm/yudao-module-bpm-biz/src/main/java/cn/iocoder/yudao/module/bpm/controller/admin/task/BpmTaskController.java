@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
@@ -72,6 +73,21 @@ public class BpmTaskController {
     public CommonResult<Boolean> updateTaskAssignee(@Valid @RequestBody BpmTaskUpdateAssigneeReqVO reqVO) {
         taskService.updateTaskAssignee(getLoginUserId(), reqVO);
         return success(true);
+    }
+
+    @PutMapping("/rollback")
+    @Operation(summary = "退回", description = "用于【流程详情】的【退回】按钮")
+    @PreAuthorize("@ss.hasPermission('bpm:task:update')")
+    public CommonResult<Boolean> rollbackTask(@Valid @RequestBody BpmTaskRollbackReqVO reqVO) {
+        taskService.rollback(getLoginUserId(), reqVO);
+        return success(true);
+    }
+    @GetMapping("/rollbackNodes")
+    @Operation(summary = "退回", description = "用于【流程详情】的【退回】按钮 查询可退回的节点")
+    @PreAuthorize("@ss.hasPermission('bpm:task:update')")
+    public CommonResult<Map<String,String>> getRollbackNodes(@Valid @RequestBody BpmTaskRollbackNodesReqVO reqVO) {
+
+        return success(taskService.rollbackNodes(getLoginUserId(), reqVO));
     }
 
 }
